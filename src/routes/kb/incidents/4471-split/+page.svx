@@ -1,0 +1,70 @@
+---
+layout: runbook
+title: '#4471 · three problems in one ticket'
+owner: apeironian
+status: open
+reviewed: 2026-10-29
+signature: 'v1.eyJzdWIiOiI5MTEwIiwiYXVkIjoiY2hhbGxlbmdlOndoYXQtaXQtc2hvd3MiLCJpYXQiOjE3OTMzMTQ4MzMsImV4cCI6MTc5MzQwMTIzM30.FSChistSHICuTtwfr5llMvLIPB0st7kySlTZxGHJgok'
+---
+
+<script>
+  import ProblemTable from '#lib/kb/ProblemTable.svelte';
+  import Callout from '#lib/kb/Callout.svelte';
+  import RenderStamp from '#lib/kb/RenderStamp.svelte';
+
+  const issues = {
+    parser: 'https://github.com/apeironian/support-kb/issues/1',
+    hint: 'https://github.com/apeironian/support-kb/issues/2',
+    shift: 'https://github.com/apeironian/support-kb/issues/3',
+  };
+</script>
+
+[#4471](/kb/incidents/4471) says one issue with one fix queued. Its own table already counts two
+causes, and its footnote hides a third problem inside the bigger one. This page splits the ticket
+into the problems it holds, with one ticket each. The parser fix fixes only the first row.
+
+<Callout kind="warn">
+#4471 is not one bug. Shipping the parser fix and closing it leaves the other two open and
+unowned.
+</Callout>
+
+## The problems
+
+<ProblemTable ticket={4471} {issues} />
+
+### `parser`: the shared parser reads every date month first
+
+A day-first tenant writes 7 April, the parser reads 4 July. Every report here that names two
+dates names the same day and month swapped. It reaches the desk through the app, by email,
+and through the booking-v2 form, from every tenant. This is the fix that is queued.
+
+### `hint`: booking-v3 prints the wrong hint under its date field
+
+The booking-v3 form shows `MM/DD/YYYY` under its date field and then reads the date the tenant's
+way, day first. People type what the hint says, so their dates swap before the parser sees them.
+Only reports sent through the form of a booking-v3 tenant land here. The parser fix does not
+touch it: the fix is the hint (or the form reading what its hint asks for).
+
+### `shift`: the date moves by one day
+
+These are not swaps. A Tuesday arrives as a Monday; a client in Lisbon gets Tuesday while a client
+in Toronto gets Monday; one invite arrived before its booking existed. That points at a time
+zone in the invite's date, not at the parser. The desk had already noticed them in
+`desk-notes.json`, then filed them under `parser` by tenant. Nothing in a report's fields marks
+them, so this row is only as complete as that list: read the body.
+
+## Why intake cannot split them
+
+Intake tags a report from the reporter's browser locale. The cause depends on the tenant: where
+they are and which booking form they run. The "tagged as" column shows how often the two
+disagree. Merging on subject line ([decision 0001](/kb/decisions/0001-dedupe-by-subject)) cannot
+split them either: all three problems use the same handful of subjects.
+
+## What to do with #4471
+
+- Keep #4471 for `parser`, and ship the queued fix against it.
+- Move `hint` and `shift` reports to their own tickets above, so a fix closes what it fixes.
+- Count from the table on this page. It is built from the export when the page renders, so it
+  stays right as the desk merges more.
+
+<RenderStamp {signature} />
